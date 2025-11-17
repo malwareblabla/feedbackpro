@@ -115,8 +115,15 @@ function FileReview() {
 
   const changeColor = (color) => {
     if (fabricCanvasRef.current) {
-      fabricCanvasRef.current.freeDrawingBrush.color = color;
-      fabricCanvasRef.current._isErasing = false;
+      const canvas = fabricCanvasRef.current;
+      
+      // Reset to normal drawing mode
+      if (canvas._isErasing) {
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        canvas._isErasing = false;
+      }
+      
+      canvas.freeDrawingBrush.color = color;
     }
   };
 
@@ -131,12 +138,28 @@ function FileReview() {
       const canvas = fabricCanvasRef.current;
       
       if (canvas._isErasing) {
+        // Back to drawing mode
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
         canvas.freeDrawingBrush.color = canvas._lastColor || '#667eea';
-        canvas.freeDrawingBrush.width = 3;
+        canvas.freeDrawingBrush.width = canvas._lastWidth || 3;
         canvas._isErasing = false;
       } else {
+        // Switch to eraser mode
         canvas._lastColor = canvas.freeDrawingBrush.color;
-        canvas.freeDrawingBrush.color = '#ffffff';
+        canvas._lastWidth = canvas.freeDrawingBrush.width;
+        
+        // Create eraser brush
+        const EraserBrush = fabric.util.createClass(fabric.PencilBrush, {
+          _render: function() {
+            const ctx = this.canvas.contextTop;
+            const originalComposite = ctx.globalCompositeOperation;
+            ctx.globalCompositeOperation = 'destination-out';
+            this.callSuper('_render');
+            ctx.globalCompositeOperation = originalComposite;
+          }
+        });
+        
+        canvas.freeDrawingBrush = new EraserBrush(canvas);
         canvas.freeDrawingBrush.width = 20;
         canvas._isErasing = true;
       }
@@ -203,7 +226,7 @@ function FileReview() {
       setCommentText('');
       setCurrentPosition(null);
       setCurrentTimestamp(null);
-      clearCanvas();
+      // Keep drawings on canvas - don't clear
       setDrawingMode(false);
       if (fabricCanvasRef.current) {
         fabricCanvasRef.current.isDrawingMode = false;
