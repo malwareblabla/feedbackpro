@@ -280,30 +280,38 @@
   position: relative;
 }
 
-.canvas-container {
+.media-viewer {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
   position: relative;
-  width: 100%;
-  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 400px;
 }
 
-.canvas-container img {
+.canvas-container {
+  position: relative;
+  display: inline-block;
+}
+
+.canvas-container img,
+.canvas-container video {
+  display: block;
   max-width: 100%;
   max-height: 70vh;
   object-fit: contain;
-  position: relative;
-  z-index: 1;
-  pointer-events: none;
 }
 
-.canvas-container canvas {
+.canvas-container .lower-canvas,
+.canvas-container .upper-canvas {
   position: absolute !important;
-  z-index: 5 !important;
-  pointer-events: auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 100 !important;
 }
-
 .canvas-container.drawing-mode-off canvas {
   pointer-events: none !important;
 }
