@@ -80,7 +80,12 @@ function FileReview() {
     
     canvas.freeDrawingBrush.color = '#667eea';
     canvas.freeDrawingBrush.width = 3;
-    
+     // Store drawing history for undo
+  canvas.on('object:added', () => {
+    if (!canvas._isUndoing) {
+      canvas._drawingHistory = canvas._drawingHistory || [];
+    }
+  });
     fabricCanvasRef.current = canvas;
 
     canvas.on('mouse:down', (e) => {
@@ -166,7 +171,36 @@ function FileReview() {
       setCurrentTimestamp(time);
     }
   };
+const changeColor = (color) => {
+    if (fabricCanvasRef.current) {
+      fabricCanvasRef.current.freeDrawingBrush.color = color;
+    }
+  };
 
+  const changeBrushSize = (size) => {
+    if (fabricCanvasRef.current) {
+      fabricCanvasRef.current.freeDrawingBrush.width = parseInt(size);
+    }
+  };
+
+  const toggleEraser = () => {
+    if (fabricCanvasRef.current) {
+      const brush = fabricCanvasRef.current.freeDrawingBrush;
+      brush.color = brush.color === '#ffffff' ? '#667eea' : '#ffffff';
+    }
+  };
+
+  const undo = () => {
+    if (fabricCanvasRef.current) {
+      const objects = fabricCanvasRef.current.getObjects();
+      if (objects.length > 0) {
+        fabricCanvasRef.current._isUndoing = true;
+        fabricCanvasRef.current.remove(objects[objects.length - 1]);
+        fabricCanvasRef.current._isUndoing = false;
+        fabricCanvasRef.current.renderAll();
+      }
+    }
+  };
   if (loading) {
     return <div className="loading">Loading file...</div>;
   }
@@ -274,19 +308,51 @@ function FileReview() {
             
             {(file.file_type === 'image' || file.file_type === 'video') && (
               <div className="drawing-tools">
-                <button 
-                  className={`tool-btn ${drawingMode ? 'active' : ''}`}
-                  onClick={toggleDrawing}
-                >
-                  ✏️ {drawingMode ? 'Drawing' : 'Draw'}
-                </button>
-                <button className="tool-btn" onClick={clearCanvas}>
-                  🗑️ Clear
-                </button>
-                {file.file_type === 'video' && (
-                  <button className="tool-btn" onClick={captureCurrentTime}>
-                    ⏱️ Mark Time
-                  </button>
+  <button 
+    className={`tool-btn ${drawingMode ? 'active' : ''}`}
+    onClick={toggleDrawing}
+  >
+    ✏️ {drawingMode ? 'Stop' : 'Draw'}
+  </button>
+  
+  {drawingMode && (
+    <>
+      <select 
+        className="tool-btn"
+        onChange={(e) => changeColor(e.target.value)}
+        defaultValue="#667eea"
+      >
+        <option value="#667eea">🟣 Purple</option>
+        <option value="#ff0000">🔴 Red</option>
+        <option value="#00ff00">🟢 Green</option>
+        <option value="#0000ff">🔵 Blue</option>
+        <option value="#ffff00">🟡 Yellow</option>
+        <option value="#ffffff">⚪ White</option>
+      </select>
+      
+      <button className="tool-btn" onClick={toggleEraser}>
+        🧹 Eraser
+      </button>
+      
+      <select 
+        className="tool-btn"
+        onChange={(e) => changeBrushSize(e.target.value)}
+        defaultValue="3"
+      >
+        <option value="1">▪️ Thin</option>
+        <option value="3">▪️▪️ Normal</option>
+        <option value="5">▪️▪️▪️ Thick</option>
+        <option value="10">▪️▪️▪️▪️ Very Thick</option>
+      </select>
+    </>
+  )}
+  
+  <button className="tool-btn" onClick={undo}>
+    ↩️ Undo
+  </button>
+  <button className="tool-btn" onClick={clearCanvas}>
+    🗑️ Clear
+  </button>
                 )}
               </div>
             )}
