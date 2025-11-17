@@ -183,12 +183,23 @@ const changeColor = (color) => {
     }
   };
 
-  const toggleEraser = () => {
-    if (fabricCanvasRef.current) {
-      const brush = fabricCanvasRef.current.freeDrawingBrush;
-      brush.color = brush.color === '#ffffff' ? '#667eea' : '#ffffff';
+const toggleEraser = () => {
+  if (fabricCanvasRef.current) {
+    const canvas = fabricCanvasRef.current;
+    
+    if (canvas._isErasing) {
+      // Back to drawing
+      canvas.freeDrawingBrush.color = canvas._lastColor || '#667eea';
+      canvas._isErasing = false;
+    } else {
+      // To eraser
+      canvas._lastColor = canvas.freeDrawingBrush.color;
+      canvas.freeDrawingBrush.color = 'rgba(255, 255, 255, 1)';
+      canvas.freeDrawingBrush.width = 20;
+      canvas._isErasing = true;
     }
-  };
+  }
+};
 
   const undo = () => {
     if (fabricCanvasRef.current) {
