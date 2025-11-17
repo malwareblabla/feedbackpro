@@ -19,6 +19,7 @@ function FileReview() {
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const playerRef = useRef(null);
+  const imageRef = useRef(null);
   
   // Comment form state
   const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
@@ -53,12 +54,10 @@ function FileReview() {
   }, [fileId]);
 
   useEffect(() => {
-    if (file && canvasRef.current && !fabricCanvasRef.current && (file.file_type === 'image' || file.file_type === 'video')) {
+    if (file && (file.file_type === 'image' || file.file_type === 'video')) {
       setTimeout(() => {
-        if (canvasRef.current) {
-          initCanvas();
-        }
-      }, 100);
+        initCanvas();
+      }, 500);
     }
   }, [file]);
 
@@ -75,22 +74,26 @@ function FileReview() {
   };
 
   const initCanvas = () => {
+    if (!canvasRef.current || fabricCanvasRef.current) return;
+
+    // Get image/video dimensions
+    let width = 800;
+    let height = 600;
+    
+    if (imageRef.current) {
+      width = imageRef.current.offsetWidth;
+      height = imageRef.current.offsetHeight;
+    }
+
     const canvas = new fabric.Canvas(canvasRef.current, {
       isDrawingMode: false,
-      width: 800,
-      height: 600,
+      width: width,
+      height: height,
       backgroundColor: 'transparent'
     });
     
     canvas.freeDrawingBrush.color = '#667eea';
     canvas.freeDrawingBrush.width = 3;
-    
-    // Store drawing history for undo
-    canvas.on('object:added', () => {
-      if (!canvas._isUndoing) {
-        canvas._drawingHistory = canvas._drawingHistory || [];
-      }
-    });
     
     fabricCanvasRef.current = canvas;
 
@@ -113,7 +116,6 @@ function FileReview() {
   const changeColor = (color) => {
     if (fabricCanvasRef.current) {
       fabricCanvasRef.current.freeDrawingBrush.color = color;
-      // Reset eraser flag
       fabricCanvasRef.current._isErasing = false;
     }
   };
@@ -129,12 +131,10 @@ function FileReview() {
       const canvas = fabricCanvasRef.current;
       
       if (canvas._isErasing) {
-        // Back to drawing
         canvas.freeDrawingBrush.color = canvas._lastColor || '#667eea';
         canvas.freeDrawingBrush.width = 3;
         canvas._isErasing = false;
       } else {
-        // To eraser
         canvas._lastColor = canvas.freeDrawingBrush.color;
         canvas.freeDrawingBrush.color = '#ffffff';
         canvas.freeDrawingBrush.width = 20;
@@ -147,9 +147,7 @@ function FileReview() {
     if (fabricCanvasRef.current) {
       const objects = fabricCanvasRef.current.getObjects();
       if (objects.length > 0) {
-        fabricCanvasRef.current._isUndoing = true;
         fabricCanvasRef.current.remove(objects[objects.length - 1]);
-        fabricCanvasRef.current._isUndoing = false;
         fabricCanvasRef.current.renderAll();
       }
     }
@@ -251,7 +249,7 @@ function FileReview() {
 
       <div className="review-container">
         <div className="media-viewer">
-          <div className={`canvas-container drawing-mode-${drawingMode ? 'on' : 'off'}`}>
+          <div className="canvas-container">
             {file.file_type === 'video' ? (
               <ReactPlayer
                 ref={playerRef}
@@ -263,9 +261,11 @@ function FileReview() {
               />
             ) : file.file_type === 'image' ? (
               <img 
+                ref={imageRef}
                 src={fileUrl} 
                 alt={file.original_name}
-                style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }}
+                style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', display: 'block' }}
+                onLoad={() => initCanvas()}
               />
             ) : (
               <div style={{ padding: '2rem', textAlign: 'center' }}>
@@ -284,10 +284,9 @@ function FileReview() {
             )}
             
             {(file.file_type === 'image' || file.file_type === 'video') && (
-              <canvas 
-                ref={canvasRef}
-                className="drawing-canvas"
-              />
+              <div className={`canvas-overlay ${drawingMode ? 'active' : ''}`}>
+                <canvas ref={canvasRef} />
+              </div>
             )}
           </div>
         </div>
