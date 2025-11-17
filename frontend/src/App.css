@@ -289,11 +289,25 @@
   justify-content: center;
 }
 
+.canvas-container img {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.canvas-container.drawing-active img {
+  pointer-events: none !important;
+}
+
 .drawing-canvas {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100% !important;
+  height: 100% !important;
   cursor: crosshair;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 /* Comments Panel */
