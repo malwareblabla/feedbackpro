@@ -278,14 +278,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
   position: relative;
-}
-
-.media-viewer {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -312,25 +304,19 @@
   left: 0 !important;
   z-index: 100 !important;
 }
+
 .canvas-container.drawing-mode-off canvas {
   pointer-events: none !important;
 }
 
-
-
-.canvas-container.drawing-active img {
-  pointer-events: none !important;
+.canvas-container.drawing-mode-on .upper-canvas {
+  cursor: crosshair !important;
+  pointer-events: auto !important;
 }
 
-.drawing-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  cursor: crosshair;
-  z-index: 10;
-  pointer-events: auto;
+.canvas-container.drawing-mode-on img,
+.canvas-container.drawing-mode-on video {
+  pointer-events: none !important;
 }
 
 /* Comments Panel */
@@ -437,21 +423,27 @@
   border-color: #667eea;
 }
 
+/* Drawing Tools */
 .drawing-tools {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 0.5rem;
   margin-bottom: 1rem;
+  max-width: 100%;
 }
 
 .tool-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tool-btn:hover {
